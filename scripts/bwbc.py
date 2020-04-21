@@ -1,0 +1,1 @@
+from data.scripts.bwlt import secretsword, rushin
