@@ -1,6 +1,7 @@
 import random
 from card import get, Stage, PokemonCard, TrainerCard, TrainerType, EnergyCard
 import ui
+from data.scripts._util import InvalidPlay, GameWon
 
 
 class Deck:
@@ -66,9 +67,11 @@ class Player:
         self.ai = None
         self.gx_used = False
         self.cardback = "classic"
+        self.coin = "pokeball"
+        self.coin_heads = True
 
     def flip_coin(self):
-        return random.choice([True, False])
+        return ui.flip_coin(self.ai is None)
 
     def prompt_select_ally(self, *args, **kwargs):
         id = ""
@@ -87,10 +90,8 @@ class Player:
         return id
 
     def prompt_card_from_deck(self, *args, **kwargs):
-        print(self.deck.stack)
         card = self.prompt_select_other([get(i, self) for i in self.deck.stack], *args, **kwargs)
         self.deck.stack.remove(card.id)
-        # needs to be fixed
         self.deck.shuffle_curr()
         return card
 
@@ -111,6 +112,7 @@ class Player:
             "ispokemon": only lets the player select pokemon cards
             "issupporter": only lets the player select supporter cards
             "isstadium": only lets the player select stadium cards
+            "istrainer": only lets the player select trainer cards
             "basic": only lets the player select basic pokemon or basic energy
                 cards
             "hasenergy": has energy attached of any kind
@@ -171,14 +173,19 @@ class Player:
             if "name_in" in kwargs.keys():
                 narrow = [i for i in narrow if i.name in kwargs["name_in"]]
             options.extend(narrow)
+        if "istrainer" in args:
+            narrow = [i for i in available if type(i) == TrainerCard]
+            options.extend(narrow)
         if "issupporter" in args:
             narrow = [i for i in available if type(i) == TrainerCard and i.trainertype == TrainerType.SUPP]
             options.extend(narrow)
         if "isstadium" in args:
             narrow = [i for i in available if type(i) == TrainerCard and i.trainertype == TrainerType.STAD]
             options.extend(narrow)
-        if len(options) == 0:
+        if len(available) == 0:
             return  # this may cause problems.
+        if len(options) == 0:
+            options = available  # this actually causes problems buddy boy
         sel = (None, None)
         if self.ai is None:
             sel = ui.display_choice(options,
@@ -205,11 +212,14 @@ class Player:
             self.prize.append(self.deck.draw().id)
 
     def pull_prize(self):
+        if len(self.prize) == 0:
+            self.win()
+            raise GameWon("player wins" if self.ai is None else "ai wins")
         return get(self.prize.pop(), self)
 
     def evolve(self, _from, to):
         if "cantevolve" in _from.extra_effects.keys() and "bts" != self.field.stadium:
-            return
+            raise InvalidPlay
         to.other_attached = _from.other_attached
         to.other_attached.append(_from.id)
         damage_taken = _from.maxhp - _from.hp
@@ -238,7 +248,9 @@ class Player:
         self.field.is_player_turn = False
 
     def retreat(self):
-        if "freeretreat" in self.active.extra_effects.keys():
+        if "freeretreat" in self.active.extra_effects.keys() or\
+             ("Dark" in self.active.energy.keys() and "darkcloak" in self.global_abilities) or\
+             ("Water" in self.active.energy.keys() and "aquatube" in self.global_abilities):
             pass
         elif self.active.energy.total() >= self.active.retreat:
             for _ in range(self.active.retreat):
@@ -246,13 +258,18 @@ class Player:
                 self.active.energy[energy.typestring.title()] -= 1
                 if self.active.energy[energy.typestring.title()] == 0:
                     self.active.energy.pop(energy.typestring.title())
+                print(self.active.other_attached)
+                print("{}: {}".format(energy.id, energy))
                 self.active.other_attached.remove(energy.id)
                 self.discard.append(energy.id)
         else:
             return
         newactive = self.prompt_select_ally("notactive", "remove")
+        self.active.tokens = []
+        self.active.rotation = None
         self.bench.append(self.active)
         self.active = newactive
 
     def win(self):
-        quit()  # fix later
+        import main
+        main.hang()

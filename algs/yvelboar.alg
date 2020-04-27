@@ -1,6 +1,6 @@
 Play:
     YveltalEX = 2 - 0.75 * x
-    Tepig = exp_decay(1.1, -1, 1, x)
+    Tepig = bound(exp_decay(1.1, -1, 1, x))
     Pignite = 2
     Emboar = 2
     DarkraiEX = 1 - 2 * math.ceil(x/4)
@@ -56,7 +56,7 @@ Energy:
         Hydreigon = -1
         Landorus = bump(10, 2, -0.55, -2, 1.55, 0, x)
 Trainer:
-    Cynthia = bump(15, 3.03, -1.5, -1.5, 2, 2.4, total_value(p.ai, avoid_recursion=True))
+    Cynthia = bump(15, 3.03, -1.5, -1.5, 2, 2.4, total_value(p.ai))
     Muscle Band:
         YveltalEX = 2
         DarkraiEX = 1.7
@@ -74,7 +74,7 @@ Trainer:
     Ultra Ball = -1
     Roseanne's Research = 2
     Pokemon Catcher = -1
-    Rare Candy:
+    Rare Candy = -1
     Darkness Energy:
         YveltalEX = 2
         DarkraiEX = 1.7
@@ -105,7 +105,7 @@ Trainer:
         Zweilous = -1
         Hydreigon = -1
         Landorus = -1
-    Colress = bound(1.5 * (len(p.bench) + len(p.opponent.bench)) - total_value(p.ai, avoid_recursion=True))
+    Colress = bound(1.5 * (len(p.bench) + len(p.opponent.bench)) - total_value(p.ai))
     Virbank City Gym = 2
     Switch = -1
 Attacks:
@@ -144,3 +144,17 @@ Attacks:
     Landorus:
         0 = sigmoid(15, -3, 2, 2.54, t)
         1 = 1.9
+ActiveValue:
+    YveltalEX = two_slope_bump(15, 1, 1, 2, 1, -1, 1.5, t)
+    DarkraiEX = sigmoid(15, 2.5, -1, 2.5, t)
+    Tepig = sigmoid(15, 1.2, -0.8, 0.5, t)
+    Pignite = sigmoid(15, 1.6, -1, 2.4, t)
+    Emboar = sigmoid(15, 1.6, -1, 3.34, t)
+    Baltoy = sigmoid(15, 1.15, -0.87, 0.56, t)
+    Claydol = -1
+    Sentret = bump(15, 1.07, 0.45, 0.2, -0.1, 0.56, t)
+    Furret = 1
+    Deino = bump(15, 1.07, 1.3, 0.2, -0.83, 1.4, t)
+    Zweilous = sigmoid(15, 1.3, -1, 1.4, t)
+    Hydreigon = -1
+    Landorus = sigmoid(15, 1.15, -0.55, 0.56, t)

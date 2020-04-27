@@ -1,1 +1,6 @@
 25/122: BASIC|Staryu|None|NONE|40|WATER|GRASS|None|0|@smack
+32/122: BASIC|Manaphy|None|EX|120|WATER|GRASS|None|1|@mineralpump;aquatube
+74/122: BASIC|Darkrai|None|EX|180|DARK|FIGHTING|PSYCHIC|2|@darkpulse,darkhead
+116/122: REF 32/122
+118/122: REF 74/122
+122/122: SUPP|Skyla|skyla

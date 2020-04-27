@@ -16,9 +16,11 @@ def lightningball(attacker, defender):
 def dynamotor(user):
     if "dynamotor" in user.one_time_used:
         return
-    target = user.player.prompt_select_ally("notactive")
+    if "electric" not in user.player.discard:  # and somehow check for special electric energy
+        return
     energy = user.player.prompt_select_other(
         [get(i, user.player) for i in user.player.discard], "isenergy", _type="electric")
+    target = user.player.prompt_select_ally("notactive")
     if "-" in energy.id:
         energy.data["overridecap"] = True
         energy.data["target"] = target

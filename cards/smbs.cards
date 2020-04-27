@@ -1,5 +1,8 @@
 18/147: BASIC|Charmander|None|NONE|70|FIRE|WATER|None|1|@scratch,flametail
 20/147: TWO|Charizard|Charmeleon|GX|250|FIRE|WATER|None|2|@wingattack,crimsonstorm,ragingout
+39/147: BASIC|Tapu Fini|None|GX|170|WATER|None|None|1|@aquaring,hydroshot,tapustorm
+133/147: REF 39/147
 134/147: BASIC|Necrozma|None|GX|180|PSYCHIC|PSYCHIC|None|2|@prismaticburst,blackray;lightsend
 150/147: REF 20/147
+152/147: REF 39/147
 153/147: REF 134/147

@@ -73,7 +73,7 @@ def get(id, player=None):
                 c = TrainerCard(id, player)
             c.get_card_data(line)
             return c
-    else:  # is an energy card // or should I override load() in EnergyCard?
+    else:
         return EnergyCard(id, player)
 
 
@@ -216,12 +216,13 @@ class PokemonCard:
                 amount -= attacker.extra_effects["damagedown"]
             if "damageup" in attacker.player.global_abilities:
                 amount += attacker.player.global_abilities.count("damageup") * 10
-                if "noweak" not in args:
-                    if self.weakness in attacker.type and \
-                            ("Dark" not in self.energy.keys() or "shadowcircle" != self.player.field.stadium):
-                        amount *= 2
-                    elif self.resist in attacker.type:
-                        amount -= 20
+            if "noweak" not in args:
+                if self.weakness in attacker.type and \
+                        ("Dark" not in self.energy.keys() or "shadowcircle" != self.player.field.stadium):
+                    amount *= 2
+            if "nores" not in args:
+                if self.resist in attacker.type:
+                    amount -= 20
             if "defenseup" in self.extra_effects.keys():
                 amount -= self.extra_effects["defenseup"]
             if "defensedown" in self.extra_effects.keys():
@@ -236,6 +237,7 @@ class PokemonCard:
         if self.hp <= 0:
             self.discard_attachments()
             if "rescuescarf" in self.extra_effects.keys():
+                self.extra_effects = {}
                 self.player.hand.append(self)
             else:
                 if self.flair != Flair.PRISM:
@@ -244,7 +246,7 @@ class PokemonCard:
                     self.player.lostzone.append(self.id)
             if self == self.player.active:
                 self.player.active = self.player.prompt_select_ally("notactive", "remove")
-            if self in self.player.bench:
+            elif self in self.player.bench:
                 self.player.bench.remove(self)
             if self.player != attacker.player:
                 attacker.player.hand.append(
@@ -258,24 +260,21 @@ class PokemonCard:
                         attacker.player.hand.append(
                             attacker.player.pull_prize()
                         )
+            if len(attacker.player.prize) == 0:
+                attacker.player.win()
 
     def discard_attachments(self):
         if self.item is not None:
             if self.item.trainertype == TrainerType.FLRE:
-                self.player.opponent.discard.append(self.item)
+                self.player.opponent.discard.append(self.item.id)
             else:
-                self.player.discard.append(self.item)
-            self.player.item = None
-        for key in self.energy.keys():
-            if key.upper() in Type.__members__:
-                for _ in range(self.energy[key]):
-                    self.player.discard.append(key.lower())
+                self.player.discard.append(self.item.id)
+            self.item = None
         self.player.discard.extend(self.special_energy)
         self.player.discard.extend(self.other_attached)
         self.special_energy = []
         self.other_attached = []
         self.energy.clear()
-        self.item = None
 
     def end_turn(self, was_my_turn):
         self.one_time_used = []
@@ -285,15 +284,19 @@ class PokemonCard:
             if "cantattack" in self.extra_effects.keys():
                 self.extra_effects.pop("cantattack")
         if "burned" in self.tokens and not self.player.flip_coin():
-            self.take_damage(20, self, "nomod")
+            self.take_damage(20, self.player.opponent.active, "nomod")
             if "flamingfighter" in self.player.opponent.global_abilities:
-                self.take_damage(40, self, "nomod")
+                self.take_damage(40, self.player.opponent.active, "nomod")
         if "poison" in self.tokens:
-            self.take_damage(10, self, "nomod")
+            self.take_damage(10, self.player.opponent.active, "nomod")
             if self.player.field.stadium == "virbank":
-                self.take_damage(20, self, "nomod")
+                self.take_damage(20, self.player.opponent.active, "nomod")
         if "cantevolve" in self.extra_effects.keys():
             self.extra_effects.pop("cantevolve")
+
+    def __repr__(self):
+        return "<PokemonCard object with name:{} and id:{} energy:{} Item:{}>".format(self.name, self.id,
+                                                                               self.energy.__str__(), self.item)
 
 
 class EnergyCard:
@@ -302,20 +305,22 @@ class EnergyCard:
     should be used
     """
     def __init__(self, type, player):
-        self.id = type
+        self.id = type.lower()
         self.type = eval("Type.{}".format(type.upper()))
         self.typestring = type.title()
         self.player = player
         self.override_cap = False
 
-    def check_infinite_energy(self):
+    def check_infinite_energy(self, pokemon):
         if self.typestring == "Fire" and "infernofandango" in self.player.global_abilities\
                 or self.typestring == "Water" and "deluge" in self.player.global_abilities\
-                or self.typestring == "Electric" and "magneticcircuit" in self.player.global_abilities:
+                or self.typestring == "Electric" and "magneticcircuit" in self.player.global_abilities\
+                or self.typestring == "Water" and "icedance" in self.player.global_abilities and \
+                pokemon in pokemon.player.bench:
             self.override_cap = True
 
     def use(self, pokemon):
-        self.check_infinite_energy()
+        self.check_infinite_energy(pokemon)
         if "energy" in self.player.has_done and not self.override_cap:
             raise TurnEnergyCapReached
         if self.typestring in pokemon.energy.keys():
@@ -325,6 +330,9 @@ class EnergyCard:
         pokemon.other_attached.append(self.id)
         if not self.override_cap:
             self.player.has_done.append("energy")
+
+    def __repr__(self):
+        return "<EnergyCard object of type:{}>".format(self.typestring)
 
 
 class TrainerCard:
@@ -392,3 +400,6 @@ class TrainerCard:
             self.player.has_done.append("supporter")
             self.player.discard.append(self.id)
         # self.player.hand.remove(self)
+
+    def __repr__(self):
+        return "<TrainerCard object with name:{} and id:{}>".format(self.name, self.id)

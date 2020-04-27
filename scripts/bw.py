@@ -83,7 +83,7 @@ def shiftgear(user):
 def energyretrieval(item):
     for _ in range(2):
         card = item.player.prompt_select_other(
-                [get(i) for i in item.player.discard],
+                [get(i, item.player) for i in item.player.discard],
                 "isenergy", "basic"
             )
         item.player.hand.append(

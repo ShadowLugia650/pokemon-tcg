@@ -30,6 +30,7 @@ def guard(user):
     if target.item is not None:
         raise PokemonAlreadyHasItem
     target.item = user
+    user.player.bench.remove(user)
 
 
 def psychicbalance(attacker, defender):

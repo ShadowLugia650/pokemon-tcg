@@ -1,8 +1,9 @@
 import pygame
 import math
+import random
 from card import Stage, PokemonCard, EnergyCard, TurnEnergyCapReached, TrainerType, TrainerCard, \
     TurnSupporterCapReached, PokemonAlreadyHasItem
-from data.scripts._util import NotEnoughEnergy
+from data.scripts._util import NotEnoughEnergy, InvalidPlay, GameWon
 
 
 all_images = []
@@ -51,7 +52,7 @@ def key_pressed(event):
         try:
             field.user.active.use_attack(index, field.cpu.active)
         except NotEnoughEnergy as e:
-            print(e)
+            print("Player not enough energy")
         using_attack = False
     elif event.key == pygame.K_r:
         field.user.retreat()
@@ -132,17 +133,28 @@ def mouse_click(event):
                             if cur_play.card.trainertype == TrainerType.TOOL or cur_play.card.trainertype == TrainerType.ENRG:
                                 try:
                                     cur_play.card.data["target"] = img.card
-                                    cur_play.card.use()
+                                    cur_play.card.use()  # handle InvalidPlay from evosoda
                                     cur_play = None
                                 except (TurnEnergyCapReached, PokemonAlreadyHasItem) as e:
                                     print(e)
                         elif type(cur_play.card) == PokemonCard:
                             if img.card.name == cur_play.card.prevo:
-                                field.user.evolve(img.card, cur_play.card)
-                                cur_play = None
+                                try:
+                                    field.user.evolve(img.card, cur_play.card)
+                                    cur_play = None
+                                except InvalidPlay as e:
+                                    print(e)
                     if img.card in field.user.hand:
                         field.user.hand.append(cur_play.card)
                         cur_play = None
+
+
+def flip_coin(is_player):
+    heads = True
+    for _ in range(random.randint(5, 8)):
+        heads = random.choice([True, False])
+
+    return heads
 
 
 def user_input(screen, field):
@@ -169,6 +181,15 @@ def user_input(screen, field):
                         screen.blit(pygame.image.load("data/res/damage/{}.png".format(n)),
                                     (screen.get_width() / 2 + 265, cur_y))
                         cur_y += 33
+                if img.card.rotation is not None:
+                    screen.blit(pygame.image.load("data/res/damage/{}.png".format(img.card.rotation)),
+                                (screen.get_width() / 2 + 69, screen.get_height() / 2 - 138))
+                if "poison" in img.card.tokens:
+                    screen.blit(pygame.image.load("data/res/damage/poison.png"),
+                                (screen.get_width() / 2 + 216, screen.get_height() / 2 - 65))
+                if "burned" in img.card.tokens:
+                    screen.blit(pygame.image.load("data/res/damage/burned.png"),
+                                (screen.get_width() / 2 + 69, screen.get_height() / 2 - 65))
     if cur_play is not None:
         screen.blit(get_img(cur_play.id),
                     (pygame.mouse.get_pos()[0] - 41,
@@ -193,15 +214,18 @@ def setup_screen(screen_in, screen_id, field_in):
             pygame.transform.scale(
                 pygame.image.load("data/res/backs/{}back.png".format(field_in.user.cardback)),
                 (82, 114)
-            ), (screen_in.get_width() / 2 + 213, screen_in.get_height() / 2 + 10)
+            ), (screen_in.get_width() / 2 + 253, screen_in.get_height() / 2 + 10)
         )
         screen_in.blit(
             pygame.transform.flip(pygame.transform.scale(
                 pygame.image.load("data/res/backs/{}back.png".format(field_in.cpu.cardback)),
                 (82, 114)
             ), False, True),
-            (screen_in.get_width() / 2 - 82 - 213, screen_in.get_height() / 2 - 114 - 10)
+            (screen_in.get_width() / 2 - 82 - 253, screen_in.get_height() / 2 - 114 - 10)
         )
+        # screen_in.blit(
+        #
+        # )
     elif screen_id == "deckbuild":
         pass
 
@@ -266,6 +290,10 @@ def blit_interfaceobj(screen, id, location, cpu=False, **kwargs):
 
 
 def blit_cards(screen, field):
+    if field.user.active is None:
+        raise GameWon("ai wins")
+    if field.cpu.active is None:
+        raise GameWon("player wins")
     if field.user.active.item is not None:
         blit_interfaceobj(
             screen,
@@ -326,13 +354,13 @@ def blit_cards(screen, field):
         blit_interfaceobj(
             screen,
             field.user.discard[len(field.user.discard)-1],
-            (screen.get_width() / 2 + 213, screen.get_height() / 2 + 134)
+            (screen.get_width() / 2 + 253, screen.get_height() / 2 + 134)
         )
     if len(field.cpu.discard) > 0:
         blit_interfaceobj(
             screen,
             field.cpu.discard[len(field.cpu.discard)-1],
-            (screen.get_width() / 2 - 82 - 213, screen.get_height() / 2 - 248),
+            (screen.get_width() / 2 - 82 - 253, screen.get_height() / 2 - 248),
             cpu=True
         )
     if field.stadcard is not None:

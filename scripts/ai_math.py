@@ -11,7 +11,7 @@ def argmax(dataset, return_val=False):
     amax = (None, None)
     dataset = {i: dataset[i] for i in range(len(dataset))} if type(dataset) == list else dataset
     for key in dataset.keys():
-        if amax == (None, None):
+        if amax[0] is None:
             amax = (dataset[key], key)
         else:
             if dataset[key] > amax[0]:
@@ -50,7 +50,7 @@ def sigmoid(g, t, v, h, x):
 
 def bump(g, w, l, r, v, h, x):
     """ Calculates the value of f with the given variables for the bump function:
-            f(x) = (t / (1 + e^(-g * (x-h)))) + (-t / (1 + e^(-g * (x - (h+w))))) + v
+            f(x) = (l / (1 + e^(-g * (x-h)))) + (r / (1 + e^(-g * (x - (h+w))))) + v
         as the composition of two sigmoid functions
 
     :param g: the steepness of the bump
@@ -63,6 +63,28 @@ def bump(g, w, l, r, v, h, x):
     :return: the calculated value of f
     """
     return sigmoid(g, l, 0, h, x) + sigmoid(g, r, 0, h+w, x) + v
+
+
+def two_slope_bump(g_0, g_1, w, l, r, v, h, x):
+    """ Calculates the value of f for the bump function with two different gradient values
+            f(x) = (l / (1 + e^(-g_0 * (x-h)))) + (r / (1 + e^(-g_1 * (x - (h+w))))) + v
+        as the composition of two sigmoid functions
+
+    :param g_0: gradient for the left side
+    :param g_1: gradient for the right side
+    :param w: width of the bump
+    :param l: the height of the left side
+    :param r: the height of the right side
+    :param v: vertical shift
+    :param h: horizontal shift
+    :param x: x variable
+    :return: the calculated value of f
+    """
+    return sigmoid(g_0, l, 0, h, x) + sigmoid(g_1, r, 0, h+w, x) + v
+
+
+def nbump():
+    pass
 
 
 def bound(x):
@@ -80,4 +102,11 @@ def total_value(ai):
     :param ai: the ai with the hand of cards to calculate the value of
     :return: the total value of the hand
     """
-    handweights = ai.gen_hand_weights(ai.player.bench+[ai.player.active], avoid_recursion=True)
+    try:
+        handweights = ai.gen_hand_weights(ai.player.bench+[ai.player.active], avoid_recursion=True)
+        total = 0
+        for i in handweights:
+            total += i[0]
+        return total
+    except Exception:
+        return 0

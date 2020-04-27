@@ -1,0 +1,9 @@
+25/202: BASIC|Victini|None|V|190|FIRE|WATER|None|2|@spreadingflames,energyburst
+49/202: BASIC|Lapras|None|V|210|WATER|ELECTRIC|None|2|@bodysurf,oceanloop
+50/202: VMAX|LaprasMAX|Lapras|V|320|WATER|ELECTRIC|None|3|@gmaxpump
+63/202: BASIC|Snom|None|NONE|50|WATER|METAL|None|1|@ram
+64/202: ONE|Frosmoth|Snom|NONE|90|WATER|METAL|None|2|@aurorabeam;icedance
+172/202: ITEM|Pal Pad|palpad
+189/202: REF 49/202
+203/202: REF 50/202
+215/202: ITEM|Ordinary Rod|ordrod
