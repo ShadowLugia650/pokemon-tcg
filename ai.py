@@ -48,7 +48,7 @@ class Algorithmic:
             card = self.player.hand.pop(best)
             if type(card) == PokemonCard:
                 if card.stage == Stage.BASIC:
-                    self.player.bench.append(card)
+                    self.player.play_pokemon(card)
                 else:
                     evo_from = [i for i in inplay if i.name == card.prevo and "cantevolve" not in i.extra_effects]
                     self.player.evolve(evo_from[0], card)

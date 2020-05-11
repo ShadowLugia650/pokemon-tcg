@@ -1,0 +1,2 @@
+: pokemon: stage|Pokemon|Prevo|flair|maxHP|type|weak|resist|retreat|@*attacks;*abilities!*pokepowers?*pokebodies%*traits
+: item: itemtype|Name|effect

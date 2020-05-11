@@ -49,7 +49,7 @@ class Flair(Enum):
     LEGEND = 9  # 2 prizes, 2 types
 
 
-def get(id, player=None):
+def get(id, player=None, fake=False):
     """ Returns the card corresponding to the given id. This function should be
     used instead of constructors for the different card classes.
 
@@ -59,9 +59,10 @@ def get(id, player=None):
     :return: the proper Card object containing all of the data for the given
         card id.
     """
+    carddir = "fcards" if fake else "cards"
     if "-" in id:
         expansion, num = id.split("-")
-        with open("data/cards/{}.cards".format(expansion)) as f:
+        with open("data/{}/{}.cards".format(carddir, expansion)) as f:
             lines = {line.split(": ")[0]: line.split(": ")[1].replace("\n", "") for line in f}
             line = lines[num]
             if "REF " in line:
@@ -130,8 +131,10 @@ class PokemonCard:
         self.hp = 0
         self.maxhp = 0
         self.abilities = []
-        self.pokepowers = []
-        self.pokebodies = []
+        self.global_abilities = []
+        self.personal_abilities = []
+        self.on_play = []
+        self.traits = []
         self.attacks = []
         self.weakness = None
         self.resist = None
@@ -165,14 +168,23 @@ class PokemonCard:
         self.resist = eval("Type.{}".format(data[7])) if data[7] != "None" else None
         self.retreat = int(data[8])
         extras = data[9]
-        if "?" in extras:  # pokebodies
-            self.pokebodies = extras.split("?")[1].split(",")
+        if "%" in extras:  # traits
+            self.traits = extras.split("%")[1].split(",")
+            extras = extras.split("%")[0]
+        if "?" in extras:  # onplay
+            self.on_play = extras.split("?")[1].split(",")
             extras = extras.split("?")[0]
-        if "!" in extras:  # pokepowers
-            self.pokepowers = extras.split("!")[1].split(",")
+        if "!" in extras:  # usable
+            self.abilities = extras.split("!")[1].split(",")
             extras = extras.split("!")[0]
-        if ";" in extras:  # abilities
-            self.abilities = extras.split(";")[1].split(",")
+        if "." in extras:  # constant self abilities
+            for ability in extras.split(".")[1].split(","):
+                self.extra_effects[ability] = True
+                self.personal_abilities.append(ability)
+            extras = extras.split(".")[0]
+        if ";" in extras:  # constant global abilities
+            for ability in extras.split(";")[1].split(","):
+                self.global_abilities.append(ability)
             extras = extras.split(";")[0]
         if "@" in extras:  # scripts
             self.attacks = extras.split("@")[1].split(",")
@@ -204,9 +216,6 @@ class PokemonCard:
         if len(self.abilities) > 0:
             exec("from data.scripts.{} import {}".format(self.id.split("-")[0], self.abilities[index]))
             exec("{}(self)".format(self.abilities[index]))
-        elif len(self.pokepowers) > 0:
-            exec("from data.scripts.{} import {}".format(self.id.split("-")[0], self.pokepowers[index]))
-            exec("{}(self)".format(self.pokepowers[index]))
 
     def take_damage(self, amount, attacker, *args):
         if "nomod" not in args:
@@ -232,6 +241,9 @@ class PokemonCard:
             if "plasmasteel" in self.player.global_abilities and self.type == Type.METAL and attacker.flair == Flair.EX:
                 return
             if "mightyshield" in self.extra_effects.keys() and len(attacker.special_energy) > 0:
+                return
+            if "focuswall" in self.extra_effects.keys() and amount >= 70:
+                self.hp = 10
                 return
         self.hp -= amount if amount > 0 else 0
         if self.hp <= 0:
@@ -283,7 +295,10 @@ class PokemonCard:
                 self.rotation = None
             if "cantattack" in self.extra_effects.keys():
                 self.extra_effects.pop("cantattack")
-        if "burned" in self.tokens and not self.player.flip_coin():
+        if "burned" in self.tokens:
+            if self.player.flip_coin():
+                self.tokens.remove("burned")
+                return
             self.take_damage(20, self.player.opponent.active, "nomod")
             if "flamingfighter" in self.player.opponent.global_abilities:
                 self.take_damage(40, self.player.opponent.active, "nomod")
@@ -296,7 +311,7 @@ class PokemonCard:
 
     def __repr__(self):
         return "<PokemonCard object with name:{} and id:{} energy:{} Item:{}>".format(self.name, self.id,
-                                                                               self.energy.__str__(), self.item)
+                                                                                      self.energy.__str__(), self.item)
 
 
 class EnergyCard:

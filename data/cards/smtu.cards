@@ -1,0 +1,9 @@
+23/181: BASIC|Squirtle|None|NONE|70|WATER|GRASS|None|1|@tackle,rainsplash
+113/181: BASIC|Latias&Latios|None|TAGTEAM|250|DRAGON|FAIRY|None|1|@busterpurge,aerounit
+135/181: SUPP|Brock's Grit|brockgrit
+160/181: BASIC|Magikarp&Wailord|None|TAGTEAM|300|WATER|GRASS|None|4|@supersplash,toweringsplash
+161/181: REF 160/181
+169/181: REF 113/181
+170/181: REF 113/181
+183/181: REF 160/181
+190/181: REF 113/181

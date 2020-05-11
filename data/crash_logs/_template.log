@@ -1,0 +1,18 @@
+Exception Caught:
+Traceback (most recent call last):
+  File "C:/Users/Matt/Documents/Projects/python/ptcg/main.py", line 79, in <module>
+    ui.user_input(screen, field)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ui.py", line 167, in user_input
+    key_pressed(event)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ui.py", line 53, in key_pressed
+    field.user.active.use_attack(index, field.cpu.active)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\card.py", line 205, in use_attack
+    exec("{}(self, target)".format(self.attacks[index]))
+  File "<string>", line 1, in <module>
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\data\scripts\ss.py", line 49, in oceanloop
+    defender.take_damage(210, attacker)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\card.py", line 262, in take_damage
+    attacker.player.pull_prize()
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\player.py", line 217, in pull_prize
+    raise GameWon("player wins" if self.ai is None else "ai wins")
+data.scripts._util.GameWon: player wins

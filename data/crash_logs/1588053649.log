@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\main.py", line 78, in <module>
+    field.cpu.ai.my_turn()
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ai.py", line 71, in my_turn
+    self.use_attack()
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ai.py", line 86, in use_attack
+    self.player.active.use_attack(index, self.player.opponent.active)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\card.py", line 207, in use_attack
+    exec("{}(self, target)".format(self.attacks[index]))
+  File "<string>", line 1, in <module>
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\data\scripts\xyff.py", line 30, in shoutofpower
+    c = get(energy, attacker.player)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\card.py", line 62, in get
+    if "-" in id:
+TypeError: argument of type 'TrainerCard' is not iterable

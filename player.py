@@ -224,10 +224,21 @@ class Player:
         to.other_attached.append(_from.id)
         damage_taken = _from.maxhp - _from.hp
         to.take_damage(damage_taken, _from, "nomod")
-        if _from is self.active:
+        self.global_abilities.extend(to.global_abilities)
+        for ability in to.on_play:
+            exec("from data.scripts.{} import {}".format(to.id.split("-")[0], ability))
+            exec("{}(to)".format(ability))
+        if _from == self.active:
             self.active = to
         else:
             self.bench[self.bench.index(_from)] = to
+
+    def play_pokemon(self, pokemon):
+        for ability in pokemon.on_play:
+            exec("from data.scripts.{} import {}".format(pokemon.id.split("-")[0], ability))
+            exec("{}(to)".format(ability))
+        self.global_abilities.extend(pokemon.global_abilities)
+        self.bench.append(pokemon)
 
     def start_turn(self):
         self.hand.append(self.deck.draw())
@@ -248,16 +259,19 @@ class Player:
         self.field.is_player_turn = False
 
     def retreat(self):
-        if "freeretreat" in self.active.extra_effects.keys() or\
-             ("Dark" in self.active.energy.keys() and "darkcloak" in self.global_abilities) or\
+        if "freeretreat" in self.active.extra_effects.keys() or \
+             ("Dark" in self.active.energy.keys() and "darkcloak" in self.global_abilities) or \
              ("Water" in self.active.energy.keys() and "aquatube" in self.global_abilities):
             pass
         elif self.active.energy.total() >= self.active.retreat:
             for _ in range(self.active.retreat):
                 energy = self.prompt_select_other(self.active.energy.as_card_list())
-                self.active.energy[energy.typestring.title()] -= 1
-                if self.active.energy[energy.typestring.title()] == 0:
-                    self.active.energy.pop(energy.typestring.title())
+                if type(energy) == EnergyCard:
+                    self.active.energy[energy.typestring.title()] -= 1
+                    if self.active.energy[energy.typestring.title()] == 0:
+                        self.active.energy.pop(energy.typestring.title())
+                else:
+                    pass
                 print(self.active.other_attached)
                 print("{}: {}".format(energy.id, energy))
                 self.active.other_attached.remove(energy.id)

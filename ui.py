@@ -102,7 +102,7 @@ def mouse_click(event):
                     and pygame.mouse.get_pos()[1] >= round(screen.get_height() / 2 + 124):
                 if type(cur_play.card) == PokemonCard and cur_play.card.stage == Stage.BASIC:
                     if len(field.user.bench) < 5:
-                        field.user.bench.append(cur_play.card)
+                        field.user.play_pokemon(cur_play.card)
                         cur_play = None
             # active ?
         for img in all_images:
