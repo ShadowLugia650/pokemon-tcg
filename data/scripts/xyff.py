@@ -1,5 +1,5 @@
 from data.scripts._util import check_energy_cost
-from card import get
+from card import get, Type
 
 
 def slash(attacker, defender):
@@ -16,19 +16,24 @@ def midairstrike(attacker, defender):
 def shoutofpower(attacker, defender):
     check_energy_cost(attacker, 1, Fighting=1)
     defender.take_damage(20, attacker)
-    if len(attacker.player.bench) == 0:
-        return
     energy = attacker.player.prompt_select_other(
-        [get(i, attacker.player) for i in attacker.player.discard],
+        [get(i) for i in attacker.player.discard],
         "isenergy",
-        "basic"
+        "remove"
     )
-    if energy is None:
-        return
     to = attacker.player.prompt_select_ally("notactive")
-    c = get(energy, attacker.player)
-    c.override_cap = True
-    c.use(to)
+    if energy.upper() in Type.__members__:
+        c = get(energy, attacker.player)
+        c.override_cap = True
+        c.use(to)
+    else:
+        for id in attacker.special_energy:
+            c = get(id, attacker.player)
+            if energy in c.name:
+                c.data["overridecap"] = True
+                c.data["target"] = to
+                c.use()
+                break
 
 
 def skylariat(attacker, defender):

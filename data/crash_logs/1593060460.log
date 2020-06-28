@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:/Users/Matt/Documents/Projects/python/ptcg/main.py", line 78, in <module>
+    field.cpu.ai.my_turn()
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ai.py", line 54, in my_turn
+    self.player.evolve(evo_from[0], card)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\player.py", line 234, in evolve
+    self.bench[self.bench.index(_from)] = to
+ValueError: <PokemonCard object with name:Pignite and id:bw-17/114 energy:{} Item:None> is not in list

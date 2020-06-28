@@ -69,7 +69,7 @@ if __name__ == "__main__":
             deck = input("deck: ")
         if deck.lower() == "random":
             deck = random.choice(playable)
-        screen = pygame.display.set_mode((800, 600))  # set_mode((0, 0), pygame.FULLSCREEN)
+        screen = pygame.display.set_mode(ui.SCREENSIZE)  # set_mode((0, 0), pygame.FULLSCREEN)
         screen_id = "game"  # "mainmenu"
         field = init_match(deck.lower())
         running = True

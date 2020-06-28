@@ -145,7 +145,7 @@ class PokemonCard:
         self.item = None
         self.player = player
         self.rotation = None  # "sleep"/"confused"/"paralyzed"
-        self.tokens = []  # "burn", "poison"
+        self.tokens = []  # "burned", "poison"
         self.extra_effects = {"cantevolve": 1}
         self.one_time_used = []
         self.special_energy = []

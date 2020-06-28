@@ -1,10 +1,14 @@
 import pygame
 import math
 import random
+# from enum import Enum
 from card import Stage, PokemonCard, EnergyCard, TurnEnergyCapReached, TrainerType, TrainerCard, \
     TurnSupporterCapReached, PokemonAlreadyHasItem
 from data.scripts._util import NotEnoughEnergy, InvalidPlay, GameWon
 
+pygame.init()
+SCREENSIZE = (800, 600)
+pygame.display.set_mode(SCREENSIZE)
 
 all_images = []
 selection = None
@@ -14,6 +18,28 @@ screen = None
 field = None
 cur_play = None
 using_attack = False
+damage_counters = {
+    "10": pygame.image.load("data/res/damage/10.png").convert_alpha(),
+    "50": pygame.image.load("data/res/damage/50.png").convert_alpha(),
+    "100": pygame.image.load("data/res/damage/100.png").convert_alpha(),
+    "burned": pygame.image.load("data/res/damage/burned.png").convert_alpha(),
+    "confused": pygame.image.load("data/res/damage/confused.png").convert_alpha(),
+    "paralyzed": pygame.image.load("data/res/damage/paralyzed.png").convert_alpha(),
+    "poison": pygame.image.load("data/res/damage/poison.png").convert_alpha(),
+    "sleep": pygame.image.load("data/res/damage/sleep.png").convert_alpha()
+}
+BACKGROUND = pygame.transform.scale(pygame.image.load("data/res/bg.png").convert(),
+                                    SCREENSIZE)
+SELECT_TINT = pygame.transform.scale(pygame.image.load("data/res/select_tint.png").convert_alpha(),
+                                     SCREENSIZE)
+cardbacks = {
+    "classic": pygame.image.load("data/res/backs/classicback.png").convert_alpha(),
+    "deoxray": pygame.image.load("data/res/backs/deoxrayback.png").convert_alpha(),
+    "inverted": pygame.image.load("data/res/backs/invertedback.png").convert_alpha(),
+    "rayquaza": pygame.image.load("data/res/backs/rayquazaback.png").convert_alpha(),
+    "yveltal": pygame.image.load("data/res/backs/yveltalback.png").convert_alpha()
+}
+faces = {}
 
 
 class InterfaceObj:
@@ -168,7 +194,7 @@ def user_input(screen, field):
             mouse_click(event)
     for img in all_images:
         if img.rect.collidepoint(pygame.mouse.get_pos()):
-            screen.blit(pygame.image.load("data/res/cards/{}.png".format(img.id.replace("/", "-"))),
+            screen.blit(get_img(img.id, fullsize=True),
                         (screen.get_width() / 2 + 50, screen.get_height() / 2 - 171))
             if img.card is not None and type(img.card) == PokemonCard:
                 dmg = img.card.maxhp - img.card.hp
@@ -178,17 +204,17 @@ def user_input(screen, field):
                 cur_y = screen.get_height() / 2 - 141
                 for n in ["100", "50", "10"]:
                     for i in range(eval("n{}".format(n))):
-                        screen.blit(pygame.image.load("data/res/damage/{}.png".format(n)),
+                        screen.blit(damage_counters[n],
                                     (screen.get_width() / 2 + 265, cur_y))
                         cur_y += 33
                 if img.card.rotation is not None:
-                    screen.blit(pygame.image.load("data/res/damage/{}.png".format(img.card.rotation)),
+                    screen.blit(damage_counters[img.card.rotation],
                                 (screen.get_width() / 2 + 69, screen.get_height() / 2 - 138))
                 if "poison" in img.card.tokens:
-                    screen.blit(pygame.image.load("data/res/damage/poison.png"),
+                    screen.blit(damage_counters["poison"],
                                 (screen.get_width() / 2 + 216, screen.get_height() / 2 - 65))
                 if "burned" in img.card.tokens:
-                    screen.blit(pygame.image.load("data/res/damage/burned.png"),
+                    screen.blit(damage_counters["burned"],
                                 (screen.get_width() / 2 + 69, screen.get_height() / 2 - 65))
     if cur_play is not None:
         screen.blit(get_img(cur_play.id),
@@ -205,20 +231,17 @@ def setup_screen(screen_in, screen_id, field_in):
         pass
     elif screen_id == "game":
         screen_in.blit(
-            pygame.transform.scale(
-                pygame.image.load("data/res/bg.png"),
-                (screen_in.get_width(), screen_in.get_height())
-            ), (0, 0)
+            BACKGROUND, (0, 0)
         )
         screen_in.blit(
             pygame.transform.scale(
-                pygame.image.load("data/res/backs/{}back.png".format(field_in.user.cardback)),
+                cardbacks[field_in.user.cardback],
                 (82, 114)
             ), (screen_in.get_width() / 2 + 253, screen_in.get_height() / 2 + 10)
         )
         screen_in.blit(
             pygame.transform.flip(pygame.transform.scale(
-                pygame.image.load("data/res/backs/{}back.png".format(field_in.cpu.cardback)),
+                cardbacks[field_in.cpu.cardback],
                 (82, 114)
             ), False, True),
             (screen_in.get_width() / 2 - 82 - 253, screen_in.get_height() / 2 - 114 - 10)
@@ -234,7 +257,7 @@ def blit_hands_prizes():
     for i in range(len(field.user.prize)):
         screen.blit(
             pygame.transform.scale(
-                pygame.image.load("data/res/backs/{}back.png".format(field.user.cardback)),
+                cardbacks[field.user.cardback],
                 (82, 114)
             ),
             (30, screen.get_height() - 264 + 25 * i)
@@ -242,7 +265,7 @@ def blit_hands_prizes():
     for i in range(len(field.cpu.prize)):
         screen.blit(
             pygame.transform.flip(pygame.transform.scale(
-                pygame.image.load("data/res/backs/{}back.png".format(field.cpu.cardback)),
+                cardbacks[field.cpu.cardback],
                 (82, 114)
             ), False, True),
             (screen.get_width() - 112, 150 - 25 * i)
@@ -259,7 +282,7 @@ def blit_hands_prizes():
     for i in range(len(field.cpu.hand)):
         screen.blit(
             pygame.transform.flip(pygame.transform.scale(
-                pygame.image.load("data/res/backs/{}back.png".format(field.cpu.cardback)),
+                cardbacks[field.cpu.cardback],
                 (82, 114)
             ), False, True),
             (screen.get_width() / 2 + 82 * (len(field.cpu.hand) / 2 - 1)
@@ -267,17 +290,23 @@ def blit_hands_prizes():
              0)
         )
     if using_attack:
-        screen.blit(pygame.image.load("data/res/cards/{}.png".format(field.user.active.id.replace("/", "-"))),
+        screen.blit(get_img(field.user.active.id, fullsize=True),
                     (screen.get_width() / 2 + 50, screen.get_height() / 2 - 171))
-        screen.blit(pygame.image.load("data/res/cards/{}.png".format(field.cpu.active.id.replace("/", "-"))),
+        screen.blit(get_img(field.cpu.active.id, fullsize=True),
                     (screen.get_width() / 2 - 295, screen.get_height() / 2 - 171))
 
 
-def get_img(id, cpu=False):
-    sprite = pygame.transform.scale(
-        pygame.image.load("data/res/cards/{}.png".format(id.replace("/", "-"))),
-        (82, 114)
-    )
+def get_img(id_, cpu=False, fullsize=False):
+    if id_.replace("/", "-") not in faces.keys():
+        faces[id_.replace("/", "-")] = pygame.image.load("data/res/cards/{}.png".format(id_.replace("/", "-")))\
+            .convert_alpha()
+    if fullsize:
+        sprite = faces[id_.replace("/", "-")]
+    else:
+        sprite = pygame.transform.scale(
+            faces[id_.replace("/", "-")],
+            (82, 114)
+        )
     if cpu:
         sprite = pygame.transform.flip(sprite, False, True)
     return sprite
@@ -387,8 +416,7 @@ def display_choice(options, label, skippable=False):
         blit_hands_prizes()
         all_images = []
         screen.blit(
-            pygame.transform.scale(pygame.image.load("data/res/select_tint.png"),
-                                   (screen.get_width(), screen.get_height())),
+            SELECT_TINT,
             (0, 0)
         )
         g = lambda x: 2*math.ceil(x/2)*(x-(math.ceil(x/2)*4-1)/2)

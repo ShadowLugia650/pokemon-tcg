@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\main.py", line 78, in <module>
+    field.cpu.ai.my_turn()
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ai.py", line 71, in my_turn
+    self.use_attack()
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\ai.py", line 86, in use_attack
+    self.player.active.use_attack(index, self.player.opponent.active)
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\card.py", line 212, in use_attack
+    exec("{}(self, target)".format(self.attacks[index]))
+  File "<string>", line 1, in <module>
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\data\scripts\xyff.py", line 22, in shoutofpower
+    "remove"
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\player.py", line 146, in prompt_select_other
+    narrow = [i for i in available if "-" not in i.id or (type(i) == TrainerCard and
+  File "C:\Users\Matt\Documents\Projects\python\ptcg\player.py", line 146, in <listcomp>
+    narrow = [i for i in available if "-" not in i.id or (type(i) == TrainerCard and
+AttributeError: 'str' object has no attribute 'id'
